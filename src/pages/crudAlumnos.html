@@ -67,7 +67,7 @@
             <label for="grado">Grado:</label>
             <input type="text" id="grado" name="grado" required>
         </div>
-        <button type="submit">Agregar</button>
+        <button type="submit" id="submitButton">Agregar</button>
     </form>
 
     <h2>Lista de Alumnos</h2>
@@ -87,11 +87,13 @@
     </table>
 
     <script>
-        let alumnos = [];
-        let nextId = 1;
+        let alumnos = JSON.parse(localStorage.getItem('alumnos')) || [];
+        let nextId = alumnos.length > 0 ? Math.max(...alumnos.map(alumno => alumno.id)) + 1 : 1;
+        let editId = null;
 
         const addForm = document.getElementById('addForm');
         const alumnosTable = document.getElementById('alumnosTable').querySelector('tbody');
+        const submitButton = document.getElementById('submitButton');
 
         addForm.addEventListener('submit', (e) => {
             e.preventDefault();
@@ -99,7 +101,18 @@
             const edad = document.getElementById('edad').value;
             const grado = document.getElementById('grado').value;
 
-            alumnos.push({ id: nextId++, nombre, edad, grado });
+            if (editId) {
+                // Actualizar alumno existente
+                const alumnoIndex = alumnos.findIndex(al => al.id === editId);
+                alumnos[alumnoIndex] = { id: editId, nombre, edad, grado };
+                editId = null;
+                submitButton.textContent = 'Agregar';
+            } else {
+                // Agregar nuevo alumno
+                alumnos.push({ id: nextId++, nombre, edad, grado });
+            }
+
+            guardarEnLocalStorage();
             renderTable();
             addForm.reset();
         });
@@ -124,6 +137,7 @@
 
         function eliminar(id) {
             alumnos = alumnos.filter(alumno => alumno.id !== id);
+            guardarEnLocalStorage();
             renderTable();
         }
 
@@ -133,9 +147,17 @@
                 document.getElementById('nombre').value = alumno.nombre;
                 document.getElementById('edad').value = alumno.edad;
                 document.getElementById('grado').value = alumno.grado;
-                eliminar(id); // Elimina el alumno actual para actualizarlo al guardar.
+                editId = id;
+                submitButton.textContent = 'Actualizar';
             }
         }
+
+        function guardarEnLocalStorage() {
+            localStorage.setItem('alumnos', JSON.stringify(alumnos));
+        }
+
+        // Renderizar la tabla al cargar la página
+        renderTable();
     </script>
 </body>
 </html>
