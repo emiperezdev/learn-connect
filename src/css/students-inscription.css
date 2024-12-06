@@ -1,0 +1,24 @@
+body {
+  background-color: #f8f9fa;
+}
+
+h1, h3 {
+  color: #333;
+}
+
+.card {
+  border-radius: 8px;
+}
+
+.table {
+  margin-top: 20px;
+}
+
+.table th {
+  background-color: #007bff;
+  color: white;
+}
+
+.table td, .table th {
+  text-align: center;
+}

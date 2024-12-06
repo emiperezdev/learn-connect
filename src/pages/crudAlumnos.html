@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CRUD de Alumnos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background-color: #f4f4f4;
+        }
+        form {
+            margin-top: 20px;
+        }
+        label {
+            display: inline-block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        input, button {
+            padding: 8px;
+            margin: 5px 0;
+            width: 100%;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <h1>CRUD de Alumnos</h1>
+    <h2>Agregar Alumno</h2>
+    <form id="addForm">
+        <div class="form-group">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+            <label for="edad">Edad:</label>
+            <input type="number" id="edad" name="edad" required>
+        </div>
+        <div class="form-group">
+            <label for="grado">Grado:</label>
+            <input type="text" id="grado" name="grado" required>
+        </div>
+        <button type="submit" id="submitButton">Agregar</button>
+    </form>
+
+    <h2>Lista de Alumnos</h2>
+    <table id="alumnosTable">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Edad</th>
+                <th>Grado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Aquí se insertarán las filas dinámicamente -->
+        </tbody>
+    </table>
+
+    <script>
+        let alumnos = JSON.parse(localStorage.getItem('alumnos')) || [];
+        let nextId = alumnos.length > 0 ? Math.max(...alumnos.map(alumno => alumno.id)) + 1 : 1;
+        let editId = null;
+
+        const addForm = document.getElementById('addForm');
+        const alumnosTable = document.getElementById('alumnosTable').querySelector('tbody');
+        const submitButton = document.getElementById('submitButton');
+
+        addForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const nombre = document.getElementById('nombre').value;
+            const edad = document.getElementById('edad').value;
+            const grado = document.getElementById('grado').value;
+
+            if (editId) {
+                // Actualizar alumno existente
+                const alumnoIndex = alumnos.findIndex(al => al.id === editId);
+                alumnos[alumnoIndex] = { id: editId, nombre, edad, grado };
+                editId = null;
+                submitButton.textContent = 'Agregar';
+            } else {
+                // Agregar nuevo alumno
+                alumnos.push({ id: nextId++, nombre, edad, grado });
+            }
+
+            guardarEnLocalStorage();
+            renderTable();
+            addForm.reset();
+        });
+
+        function renderTable() {
+            alumnosTable.innerHTML = '';
+            alumnos.forEach(alumno => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${alumno.id}</td>
+                    <td>${alumno.nombre}</td>
+                    <td>${alumno.edad}</td>
+                    <td>${alumno.grado}</td>
+                    <td>
+                        <button onclick="editar(${alumno.id})">Editar</button>
+                        <button onclick="eliminar(${alumno.id})">Eliminar</button>
+                    </td>
+                `;
+                alumnosTable.appendChild(row);
+            });
+        }
+
+        function eliminar(id) {
+            alumnos = alumnos.filter(alumno => alumno.id !== id);
+            guardarEnLocalStorage();
+            renderTable();
+        }
+
+        function editar(id) {
+            const alumno = alumnos.find(al => al.id === id);
+            if (alumno) {
+                document.getElementById('nombre').value = alumno.nombre;
+                document.getElementById('edad').value = alumno.edad;
+                document.getElementById('grado').value = alumno.grado;
+                editId = id;
+                submitButton.textContent = 'Actualizar';
+            }
+        }
+
+        function guardarEnLocalStorage() {
+            localStorage.setItem('alumnos', JSON.stringify(alumnos));
+        }
+
+        // Renderizar la tabla al cargar la página
+        renderTable();
+    </script>
+</body>
+</html>
